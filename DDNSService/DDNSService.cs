@@ -20,7 +20,7 @@ namespace DDNSService
         /// <summary>
         ///     The frequency
         /// </summary>
-        private readonly int frequency = 60000; // 默认是1分钟更新一次
+        private readonly int frequency = 120000; // 默认是2分钟更新一次
 
         /// <summary>
         ///     The timer
@@ -34,7 +34,8 @@ namespace DDNSService
 
         protected override void OnStart(string[] args)
         {
-            _timer = new Timer(frequency); //实例化Timer类，设置间隔时间为60000毫秒；
+            var retry = int.TryParse(ConfigurationManager.AppSettings["ReTryTime"], result: out int result) ? result : 120000;
+            _timer = new Timer(retry); //实例化Timer类，设置间隔时间为60000毫秒；
             _timer.Elapsed += CheckOrChangeAnalysis; //到达时间的时候执行事件；
             _timer.AutoReset = true; //设置是执行一次（false）还是一直执行(true)；
             _timer.Enabled = true; //是否执行System.Timers.Timer.Elapsed事件；
