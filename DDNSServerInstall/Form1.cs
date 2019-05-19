@@ -30,13 +30,13 @@ namespace DDNSServerInstall
         }
 
         //事件：停止服务
-        private void button4_Click(object sender, EventArgs e)
+        private void button3_Click(object sender, EventArgs e)
         {
             if (IsServiceExisted(_serviceName)) ServiceStop(_serviceName);
         }
 
         //事件：卸载服务
-        private void button3_Click(object sender, EventArgs e)
+        private void button4_Click(object sender, EventArgs e)
         {
             if (IsServiceExisted(_serviceName))
             {

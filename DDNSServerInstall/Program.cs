@@ -16,4 +16,4 @@ namespace DDNSServerInstall
             Application.Run(new Form1());
         }
     }
-}
+}   

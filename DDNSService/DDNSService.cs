@@ -35,7 +35,7 @@ namespace DDNSService
         protected override void OnStart(string[] args)
         {
             CheckOrChangeAnalysis(null, null); // 默认先执行一次
-            var retry = int.TryParse(ConfigurationManager.AppSettings["ReTryTime"], result: out int result) ? result : 120000;
+            var retry = int.TryParse(ConfigurationManager.AppSettings["ReTryTime"], result: out int result) ? result : frequency;
             _timer = new Timer(retry); //实例化Timer类，设置间隔时间为60000毫秒；
             _timer.Elapsed += CheckOrChangeAnalysis; //到达时间的时候执行事件；
             _timer.AutoReset = true; //设置是执行一次（false）还是一直执行(true)；
