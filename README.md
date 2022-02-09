@@ -8,7 +8,7 @@ DDNSService->app.config
     <add key="AccessKeySecret" value="你的阿里云Key密码" />
     <add key="DomainName" value="你的网站域名" />
     <add key="RR" value="前缀" />
-    <add key="TTL" value="超时时间按照秒为单位（免费则改成120）" />
+    <add key="TTL" value="超时时间按照秒为单位（免费则改成600）" />
     
 更改后直接生成DDNSServerInstall就好了
 
