@@ -20,7 +20,7 @@ namespace DDNSService
         /// <summary>
         ///     The frequency
         /// </summary>
-        private readonly int frequency = 6000000; // 默认是10分钟更新一次
+        private readonly int frequency = 120000; // 默认是2分钟更新一次
 
         /// <summary>
         ///     The timer
@@ -83,8 +83,8 @@ namespace DDNSService
                 });
                 httpClient.DefaultRequestHeaders.UserAgent.Add(
                     new ProductInfoHeaderValue(new ProductHeaderValue("aliyun-ddns-client-csharp")));
-                // 设置2分钟的超时时间，一般已经足够，如果还是不行，就不行，等下一个循环
-                httpClient.Timeout = TimeSpan.FromSeconds(120);
+                // 设置1分钟半的超时时间，一般已经足够，如果还是不行，就不行，等下一个循环
+                httpClient.Timeout = TimeSpan.FromSeconds(90);
                 // 默认修改在Service App.Config 修改 也可以手动指定 获取本地外网IP的地址
                 var htmlSource = httpClient.GetStringAsync(ConfigurationManager.AppSettings["Ip4Server"]).Result;
 
@@ -153,8 +153,8 @@ namespace DDNSService
                 });
                 httpClient.DefaultRequestHeaders.UserAgent.Add(
                     new ProductInfoHeaderValue(new ProductHeaderValue("aliyun-ddns-client-csharp")));
-                // 设置2分钟的超时时间，一般已经足够，如果还是不行，就不行，等下一个循环
-                httpClient.Timeout = TimeSpan.FromSeconds(120);
+                // 设置1分钟半的超时时间，一般已经足够，如果还是不行，就不行，等下一个循环
+                httpClient.Timeout = TimeSpan.FromSeconds(90);
 
                 // 默认修改在Service App.Config 修改 也可以手动指定 获取本地外网IP的地址
                 var htmlSource = httpClient.GetStringAsync(ConfigurationManager.AppSettings["Ip6Server"]).Result;
