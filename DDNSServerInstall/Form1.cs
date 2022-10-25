@@ -19,29 +19,62 @@ namespace DDNSServerInstall
         //事件：安装服务
         private void button1_Click(object sender, EventArgs e)
         {
-            if (IsServiceExisted(_serviceName)) UninstallService(_serviceFilePath);
-            InstallService(_serviceFilePath);
+            try
+            {
+                if (IsServiceExisted(_serviceName)) UninstallService(_serviceFilePath);
+                InstallService(_serviceFilePath);
+                MessageBox.Show("安装成功");
+            }
+            catch
+            {
+                MessageBox.Show("安装失败");
+            }
         }
 
         //事件：启动服务
         private void button2_Click(object sender, EventArgs e)
         {
-            if (IsServiceExisted(_serviceName)) ServiceStart(_serviceName);
+            try
+            {
+                if (IsServiceExisted(_serviceName)) ServiceStart(_serviceName);
+
+                MessageBox.Show("启动成功");
+            }
+            catch
+            {
+                MessageBox.Show("启动失败");
+            }
         }
 
         //事件：停止服务
         private void button3_Click(object sender, EventArgs e)
         {
-            if (IsServiceExisted(_serviceName)) ServiceStop(_serviceName);
+            try
+            {
+                if (IsServiceExisted(_serviceName)) ServiceStop(_serviceName);
+                MessageBox.Show("停止成功");
+            }
+            catch
+            {
+                MessageBox.Show("停止失败");
+            }
         }
 
         //事件：卸载服务
         private void button4_Click(object sender, EventArgs e)
         {
-            if (IsServiceExisted(_serviceName))
+            try
             {
-                ServiceStop(_serviceName);
-                UninstallService(_serviceFilePath);
+                if (IsServiceExisted(_serviceName))
+                {
+                    ServiceStop(_serviceName);
+                    UninstallService(_serviceFilePath);
+                }
+                MessageBox.Show("卸载成功");
+            }
+            catch
+            {
+                MessageBox.Show("卸载失败");
             }
         }
 

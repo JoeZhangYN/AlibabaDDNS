@@ -20,7 +20,7 @@ namespace DDNSService
         /// <summary>
         ///     The frequency
         /// </summary>
-        private readonly int frequency = 120000; // 默认是2分钟更新一次
+        private readonly int frequency = 6000000; // 默认是10分钟更新一次
 
         /// <summary>
         ///     The timer
@@ -50,13 +50,8 @@ namespace DDNSService
             _timer = null;
         }
 
-        public void CheckOrChangeAnalysis(object sender, ElapsedEventArgs e)
+        public void change_ipv4(StreamWriter streamWriter)
         {
-            if (!File.Exists(_logPath)) File.Create(_logPath);
-
-            var streamWriter = new StreamWriter(_logPath, true);
-
-            // var configs = File.ReadAllLines("config.txt");
             try
             {
                 // 默认修改在Service App.Config 修改 也可以手动指定
@@ -65,17 +60,21 @@ namespace DDNSService
                     ConfigurationManager.AppSettings["AccessKeySecret"];
                 ; //Access Key Secret，如 ysHnd1dhWvoOmbdWKx04evlVEdXEW7
                 var domainName = ConfigurationManager.AppSettings["DomainName"]; //域名，如 google.com  
-                var rr = ConfigurationManager.AppSettings["RR"]; //子域名，如 www
-                var ttl = ConfigurationManager.AppSettings["TTL"]; // TTL 时间 单位秒 免费最低120 2分钟 收费最低1秒
+                var rr = ConfigurationManager.AppSettings["RR4"]; //子域名，如 www
+                var ttl = ConfigurationManager.AppSettings["TTL"]; // TTL 时间 单位秒 免费最低600 10分钟 收费最低1秒
 
                 var aliyunClient = new DefaultAliyunClient("http://dns.aliyuncs.com/", accessKeyId, accessKeySecret);
-                var req = new DescribeDomainRecordsRequest {DomainName = domainName};
+                var req = new DescribeDomainRecordsRequest { DomainName = domainName };
                 var response = aliyunClient.Execute(req);
 
                 // 筛选只有A类解析，且前缀为设置的前缀
                 var updateRecord = response.DomainRecords.FirstOrDefault(rec => rec.RR == rr && rec.Type == "A");
                 if (updateRecord == null)
+                {
+                    streamWriter.WriteLine(
+                        $"Time:{DateTime.Now}\r\nno such ipv4 RR");
                     return;
+                }
 
                 var httpClient = new HttpClient(new HttpClientHandler
                 {
@@ -84,16 +83,23 @@ namespace DDNSService
                 });
                 httpClient.DefaultRequestHeaders.UserAgent.Add(
                     new ProductInfoHeaderValue(new ProductHeaderValue("aliyun-ddns-client-csharp")));
+                // 设置2分钟的超时时间，一般已经足够，如果还是不行，就不行，等下一个循环
+                httpClient.Timeout = TimeSpan.FromSeconds(120);
                 // 默认修改在Service App.Config 修改 也可以手动指定 获取本地外网IP的地址
-                var htmlSource = httpClient.GetStringAsync(ConfigurationManager.AppSettings["IpServer"]).Result;
+                var htmlSource = httpClient.GetStringAsync(ConfigurationManager.AppSettings["Ip4Server"]).Result;
 
                 var ip = Regex.Match(htmlSource,
                     @"((?:(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d)))\.){3}(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d))))",
                     RegexOptions.IgnoreCase).Value;
 
-                if (updateRecord.Value == ip) return;
+                if (updateRecord.Value == ip)
+                {
+                    streamWriter.WriteLine(
+                        $"Time:{DateTime.Now}\r\nIp4 not change");
+                    return;
+                }
 
-                if (!int.TryParse(ttl, out var ttlInt)) ttlInt = 120;
+                if (!int.TryParse(ttl, out var ttlInt)) ttlInt = 600;
 
                 var changeValueRequest = new UpdateDomainRecordRequest
                 {
@@ -112,12 +118,93 @@ namespace DDNSService
             {
                 streamWriter.WriteLine(ex.ToString());
             }
-            finally
-            {
-                streamWriter.Close();
+        }
 
-                streamWriter = null;
+        public void change_ipv6(StreamWriter streamWriter)
+        {
+            try
+            {
+                // 默认修改在Service App.Config 修改 也可以手动指定
+                var accessKeyId = ConfigurationManager.AppSettings["AccessKeyId"]; //Access Key ID，如 DR2DPjKmg4ww0e79
+                var accessKeySecret =
+                    ConfigurationManager.AppSettings["AccessKeySecret"];
+                ; //Access Key Secret，如 ysHnd1dhWvoOmbdWKx04evlVEdXEW7
+                var domainName = ConfigurationManager.AppSettings["DomainName"]; //域名，如 google.com  
+                var rr = ConfigurationManager.AppSettings["RR6"]; //子域名，如 www
+                var ttl = ConfigurationManager.AppSettings["TTL"]; // TTL 时间 单位秒 免费最低600 10分钟 收费最低1秒
+
+                var aliyunClient = new DefaultAliyunClient("http://dns.aliyuncs.com/", accessKeyId, accessKeySecret);
+                var req = new DescribeDomainRecordsRequest { DomainName = domainName };
+                var response = aliyunClient.Execute(req);
+
+                // 筛选只有A类解析，且前缀为设置的前缀
+                var updateRecord = response.DomainRecords.FirstOrDefault(rec => rec.RR == rr && rec.Type == "AAAA");
+                if (updateRecord == null)
+                {
+                    streamWriter.WriteLine(
+                        $"Time:{DateTime.Now}\r\nno such ipv6 RR");
+                    return;
+                }
+
+                var httpClient = new HttpClient(new HttpClientHandler
+                {
+                    AutomaticDecompression =
+                        DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.None
+                });
+                httpClient.DefaultRequestHeaders.UserAgent.Add(
+                    new ProductInfoHeaderValue(new ProductHeaderValue("aliyun-ddns-client-csharp")));
+                // 设置2分钟的超时时间，一般已经足够，如果还是不行，就不行，等下一个循环
+                httpClient.Timeout = TimeSpan.FromSeconds(120);
+
+                // 默认修改在Service App.Config 修改 也可以手动指定 获取本地外网IP的地址
+                var htmlSource = httpClient.GetStringAsync(ConfigurationManager.AppSettings["Ip6Server"]).Result;
+
+                var ip = Regex.Match(htmlSource,
+                    @"(^([\da-fA-F]{1,4}:){6}((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)|::([\da−fA−F]1,4:)0,4((25[0−5]|2[0−4]\d|[01]?\d\d?)\.)3(25[0−5]|2[0−4]\d|[01]?\d\d?)|::([\da−fA−F]1,4:)0,4((25[0−5]|2[0−4]\d|[01]?\d\d?)\.)3(25[0−5]|2[0−4]\d|[01]?\d\d?)|^([\da-fA-F]{1,4}:):([\da-fA-F]{1,4}:){0,3}((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)|([\da−fA−F]1,4:)2:([\da−fA−F]1,4:)0,2((25[0−5]|2[0−4]\d|[01]?\d\d?)\.)3(25[0−5]|2[0−4]\d|[01]?\d\d?)|([\da−fA−F]1,4:)2:([\da−fA−F]1,4:)0,2((25[0−5]|2[0−4]\d|[01]?\d\d?)\.)3(25[0−5]|2[0−4]\d|[01]?\d\d?)|^([\da-fA-F]{1,4}:){3}:([\da-fA-F]{1,4}:){0,1}((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)|([\da−fA−F]1,4:)4:((25[0−5]|2[0−4]\d|[01]?\d\d?)\.)3(25[0−5]|2[0−4]\d|[01]?\d\d?)|([\da−fA−F]1,4:)4:((25[0−5]|2[0−4]\d|[01]?\d\d?)\.)3(25[0−5]|2[0−4]\d|[01]?\d\d?)|^([\da-fA-F]{1,4}:){7}[\da-fA-F]{1,4}|:((:[\da−fA−F]1,4)1,6|:)|:((:[\da−fA−F]1,4)1,6|:)|^[\da-fA-F]{1,4}:((:[\da-fA-F]{1,4}){1,5}|:)|([\da−fA−F]1,4:)2((:[\da−fA−F]1,4)1,4|:)|([\da−fA−F]1,4:)2((:[\da−fA−F]1,4)1,4|:)|^([\da-fA-F]{1,4}:){3}((:[\da-fA-F]{1,4}){1,3}|:)|([\da−fA−F]1,4:)4((:[\da−fA−F]1,4)1,2|:)|([\da−fA−F]1,4:)4((:[\da−fA−F]1,4)1,2|:)|^([\da-fA-F]{1,4}:){5}:([\da-fA-F]{1,4})?|([\da−fA−F]1,4:)6:|([\da−fA−F]1,4:)6:)",
+                    RegexOptions.IgnoreCase).Value;
+
+                if (updateRecord.Value == ip)
+                {
+                    streamWriter.WriteLine(
+                        $"Time:{DateTime.Now}\r\nIp6 not change");
+                    return;
+                }
+
+                if (!int.TryParse(ttl, out var ttlInt)) ttlInt = 600;
+
+                var changeValueRequest = new UpdateDomainRecordRequest
+                {
+                    RecordId = updateRecord.RecordId,
+                    Value = ip,
+                    Type = "AAAA",
+                    RR = rr,
+                    TTL = ttlInt
+                };
+                aliyunClient.Execute(changeValueRequest);
+
+                streamWriter.WriteLine(
+                    $"Time:{DateTime.Now}\r\n   Before Ip6:{updateRecord.Value}\r\n   Change Ip6:{ip}");
             }
+            catch (Exception ex)
+            {
+                streamWriter.WriteLine(ex.ToString());
+            }
+        }
+
+        public void CheckOrChangeAnalysis(object sender, ElapsedEventArgs e)
+        {
+
+            if (!File.Exists(_logPath)) File.Create(_logPath);
+
+            var streamWriter = new StreamWriter(_logPath, true);
+
+            // var configs = File.ReadAllLines("config.txt");
+
+            change_ipv4(streamWriter);
+
+            change_ipv6(streamWriter);
+
+            streamWriter.Close();
         }
     }
 }
