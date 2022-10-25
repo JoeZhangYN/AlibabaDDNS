@@ -72,7 +72,7 @@ namespace DDNSService
                 if (updateRecord == null)
                 {
                     streamWriter.WriteLine(
-                        $"Time:{DateTime.Now}\r\nno such ipv4 RR");
+                        $"Time:{DateTime.Now}\r\n没有该IPV4RR");
                     return;
                 }
 
@@ -94,8 +94,8 @@ namespace DDNSService
 
                 if (updateRecord.Value == ip)
                 {
-                    streamWriter.WriteLine(
-                        $"Time:{DateTime.Now}\r\nIp4 not change");
+                    //streamWriter.WriteLine(
+                    //    $"Time:{DateTime.Now}\r\nIp4未改变");
                     return;
                 }
 
@@ -112,7 +112,7 @@ namespace DDNSService
                 aliyunClient.Execute(changeValueRequest);
 
                 streamWriter.WriteLine(
-                    $"Time:{DateTime.Now}\r\n   Before Ip:{updateRecord.Value}\r\n   Change Ip:{ip}");
+                    $"Time:{DateTime.Now}\r\n   之前 Ip4:{updateRecord.Value}\r\n   之后 Ip4:{ip}");
             }
             catch (Exception ex)
             {
@@ -142,7 +142,7 @@ namespace DDNSService
                 if (updateRecord == null)
                 {
                     streamWriter.WriteLine(
-                        $"Time:{DateTime.Now}\r\nno such ipv6 RR");
+                        $"Time:{DateTime.Now}\r\n没有该IPV6RR");
                     return;
                 }
 
@@ -165,8 +165,8 @@ namespace DDNSService
 
                 if (updateRecord.Value == ip)
                 {
-                    streamWriter.WriteLine(
-                        $"Time:{DateTime.Now}\r\nIp6 not change");
+                    //streamWriter.WriteLine(
+                    //    $"Time:{DateTime.Now}\r\nIp6未改变");
                     return;
                 }
 
@@ -183,7 +183,7 @@ namespace DDNSService
                 aliyunClient.Execute(changeValueRequest);
 
                 streamWriter.WriteLine(
-                    $"Time:{DateTime.Now}\r\n   Before Ip6:{updateRecord.Value}\r\n   Change Ip6:{ip}");
+                    $"Time:{DateTime.Now}\r\n   之前 Ip6:{updateRecord.Value}\r\n   改变后 Ip6:{ip}");
             }
             catch (Exception ex)
             {
@@ -197,6 +197,12 @@ namespace DDNSService
             if (!File.Exists(_logPath)) File.Create(_logPath);
 
             var streamWriter = new StreamWriter(_logPath, true);
+
+            if (sender is null)
+            {
+                streamWriter.WriteLine(
+                    $"Time:{DateTime.Now}\r\n程序开始运行");
+            }
 
             // var configs = File.ReadAllLines("config.txt");
 
