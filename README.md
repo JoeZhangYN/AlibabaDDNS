@@ -5,25 +5,9 @@
 
 DDNSService->app.config
 
-
- add key="AccessKeyId" value="你的阿里云KeyID" 
-
- add key="AccessKeySecret" value="你的阿里云key密码"
- 
-
- add key="DomainName" value="你的网站域名"
- 
-
- add key="RR" value="前缀"
- 
-
- add key="TTL" value="超时时间按照秒为单位（免费则改成600）"
-    
-更改后直接生成DDNSServerInstall就好了
-
+文件内有说明
 安装服务，服务启动后，
 
-
-每相隔一分钟，如果对应本机外网IP更改，则自动更新对应域名解析。
+每相隔1分钟，如果对应本机外网IP更改，则自动更新对应域名解析。
 
 本地C盘会有记录显示。
